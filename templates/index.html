@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Review Sentiment Classifier - NLP</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+    <!-- Google Fonts: Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        outfit: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Custom Styles -->
+    <style>
+        body {
+            background-color: #0b0f19;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 50% 0%, rgba(219, 39, 119, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(79, 70, 229, 0.15) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-btn:hover {
+            box-shadow: 0 0 20px rgba(129, 140, 248, 0.5);
+        }
+        .glow-green {
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.25);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+        .glow-red {
+            box-shadow: 0 0 30px rgba(244, 63, 94, 0.25);
+            border-color: rgba(244, 63, 94, 0.4);
+        }
+        .pipeline-step {
+            transition: all 0.3s ease;
+        }
+        .pipeline-active {
+            border-color: #818cf8;
+            box-shadow: 0 0 15px rgba(129, 140, 248, 0.3);
+            color: #e0e7ff;
+            background: rgba(129, 140, 248, 0.1);
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-200 min-h-screen flex flex-col justify-between">
+
+    <!-- Global Gradients SVG Defs for Progress Ring -->
+    <svg class="hidden">
+        <defs>
+            <linearGradient id="gradient-positive" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#10b981" />
+                <stop offset="100%" stop-color="#059669" />
+            </linearGradient>
+            <linearGradient id="gradient-negative" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f43f5e" />
+                <stop offset="100%" stop-color="#e11d48" />
+            </linearGradient>
+        </defs>
+    </svg>
+
+    <!-- Header / Navbar -->
+    <header class="w-full border-b border-white/5 py-4 px-6 lg:px-12 flex justify-between items-center glass-panel sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-2xl overflow-hidden shadow-lg shadow-indigo-500/30 ring-2 ring-indigo-500/20 flex-shrink-0">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="App Logo" class="w-full h-full object-cover">
+            </div>
+            <div>
+                <h1 class="font-outfit font-bold text-lg tracking-tight text-white leading-none">Kelompok 8</h1>
+                <span class="text-xs text-gray-400">Data Mining UAS Project</span>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            {% if demo_mode %}
+            <span id="status-badge" class="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                Demo Mode
+            </span>
+            {% else %}
+            <span id="status-badge" class="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Production (ML Model)
+            </span>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow container mx-auto px-4 py-8 lg:py-12 max-w-5xl">
+        <!-- Title Section -->
+        <div class="text-center mb-10">
+            <h2 class="font-outfit text-4xl lg:text-5xl font-extrabold tracking-tight mb-3">
+                <span class="bg-gradient-to-r from-indigo-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">
+                    Movie Review Sentiment Classifier
+                </span>
+            </h2>
+            <p class="text-gray-400 max-w-xl mx-auto text-sm lg:text-base leading-relaxed">
+                Klasifikasi sentimen ulasan film otomatis menggunakan teknik NLP & Machine Learning. Masukkan ulasan Anda dalam Bahasa Inggris di bawah ini.
+            </p>
+        </div>
+
+        {% if demo_mode %}
+        <!-- Demo Warning Banner -->
+        <div id="demo-banner" class="mb-8 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-sm flex flex-col md:flex-row items-start md:items-center gap-3 shadow-lg backdrop-blur-md">
+            <div class="p-2 rounded-lg bg-amber-500/20 text-amber-400">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <div class="flex-grow">
+                <span class="font-semibold block md:inline">Mode Demo Aktif:</span>
+                Sistem menggunakan analisis heuristik kata kunci. Untuk mengaktifkan klasifikasi Machine Learning (Logistic Regression), letakkan dataset <code class="bg-black/30 px-1.5 py-0.5 rounded text-amber-300 font-mono text-xs">IMDB Dataset.csv</code> di folder <code class="bg-black/30 px-1.5 py-0.5 rounded text-amber-300 font-mono text-xs">data/</code> lalu jalankan perintah <code class="bg-black/30 px-1.5 py-0.5 rounded text-amber-300 font-mono text-xs">python train.py</code>.
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Two Column Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <!-- Left Side: Textarea & Pipeline Visualizer -->
+            <div class="lg:col-span-7 space-y-6">
+                <!-- Text Input Card -->
+                <div class="glass-panel rounded-3xl p-6 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-fuchsia-500"></div>
+                    <div class="flex items-center justify-between mb-3">
+                        <label for="review-input" class="font-outfit font-semibold text-lg text-white">
+                            Tulis Ulasan Film Anda:
+                        </label>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
+                                <path fill-rule="evenodd" d="M7 2a1 1 0 011 1v1h3a1 1 0 110 2H9.578a18.87 18.87 0 01-1.724 4.78c.29.354.596.696.914 1.026a1 1 0 11-1.44 1.389c-.188-.196-.373-.396-.554-.6a19.098 19.098 0 01-3.107 3.567 1 1 0 01-1.334-1.49 17.087 17.087 0 003.13-3.733 18.992 18.992 0 01-1.487-2.494 1 1 0 111.79-.89c.234.47.489.928.764 1.372.417-.934.752-1.913.997-2.927H3a1 1 0 110-2h3V3a1 1 0 011-1zm6 6a1 1 0 01.894.553l2.991 5.992a.869.869 0 01.02.038l.99 1.98a1 1 0 11-1.79.895L15.383 16h-4.764l-.724 1.447a1 1 0 11-1.788-.894l.99-1.98.019-.038 2.99-5.992A1 1 0 0113 8zm-1.382 6h2.764L13 11.236 11.618 14z" clip-rule="evenodd" />
+                            </svg>
+                            Input: Bahasa Inggris
+                        </span>
+                    </div>
+                    <textarea 
+                        id="review-input" 
+                        rows="6" 
+                        class="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none text-sm lg:text-base leading-relaxed"
+                        placeholder="E.g., The cinematography was gorgeous and the acting was top notch. A true masterpiece of cinema!..."
+                    ></textarea>
+                    
+                    <div class="flex justify-between items-center mt-4">
+                        <span id="char-counter" class="text-xs text-gray-500">0 karakter / min 10 karakter (English only)</span>
+                        <div class="flex gap-2">
+                            <button id="btn-clear" class="px-4 py-2 text-xs font-semibold text-gray-400 hover:text-white transition bg-white/5 hover:bg-white/10 rounded-xl">
+                                Bersihkan
+                            </button>
+                            <button id="btn-submit" disabled class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold text-sm shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed hover:from-indigo-600 hover:to-fuchsia-600 transition-all glow-btn flex items-center gap-2">
+                                <span>Klasifikasikan</span>
+                                <svg id="spinner" class="hidden animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pipeline Status Card -->
+                <div class="glass-panel rounded-3xl p-6 shadow-xl">
+                    <h3 class="font-outfit font-semibold text-md text-white mb-4 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-indigo-400">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                        </svg>
+                        NLP Pipeline Visualizer
+                    </h3>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-xs">
+                        <div id="step-1" class="pipeline-step border border-white/5 rounded-2xl p-3 bg-white/[0.02] text-gray-500">
+                            <div class="font-bold text-lg mb-1">Fasa 2</div>
+                            <div>Preprocessing</div>
+                        </div>
+                        <div id="step-2" class="pipeline-step border border-white/5 rounded-2xl p-3 bg-white/[0.02] text-gray-500">
+                            <div class="font-bold text-lg mb-1">Fasa 3</div>
+                            <div>Feature Vector</div>
+                        </div>
+                        <div id="step-3" class="pipeline-step border border-white/5 rounded-2xl p-3 bg-white/[0.02] text-gray-500">
+                            <div class="font-bold text-lg mb-1">Fasa 4</div>
+                            <div>ML Predict</div>
+                        </div>
+                        <div id="step-4" class="pipeline-step border border-white/5 rounded-2xl p-3 bg-white/[0.02] text-gray-500">
+                            <div class="font-bold text-lg mb-1">Fasa 5</div>
+                            <div>Output Result</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Beautiful Results Display -->
+            <div class="lg:col-span-5">
+                <!-- Empty Result State -->
+                <div id="result-placeholder" class="glass-panel rounded-3xl p-8 text-center border-dashed border-white/10 flex flex-col items-center justify-center min-h-[350px]">
+                    <div class="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4 text-gray-400 border border-white/10">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                        </svg>
+                    </div>
+                    <h3 class="font-outfit font-semibold text-lg text-white mb-2">Menunggu Input</h3>
+                    <p class="text-sm text-gray-500 max-w-xs">
+                        Masukkan ulasan Anda pada kotak teks di sebelah kiri lalu tekan tombol klasifikasi untuk melihat analisis sentimen.
+                    </p>
+                </div>
+
+                <!-- Active Result Card (Hidden Initially) -->
+                <div id="result-card" class="hidden glass-panel rounded-3xl p-8 transition-all duration-500 flex flex-col justify-between min-h-[350px] relative overflow-hidden">
+                    <!-- Accent background indicator light -->
+                    <div id="sentiment-glow-bg" class="absolute -right-20 -top-20 w-48 h-48 rounded-full blur-3xl opacity-20 transition-all duration-500"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-center mb-6">
+                            <span class="text-xs font-semibold text-gray-400 tracking-wider uppercase">Hasil Analisis</span>
+                            <span id="result-badge" class="px-3 py-1 rounded-full text-xs font-semibold border"></span>
+                        </div>
+                        
+                        <!-- Sentiment Name and Icon -->
+                        <div class="flex items-center gap-4 mb-8">
+                            <div id="sentiment-icon" class="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-lg"></div>
+                            <div>
+                                <h4 id="sentiment-text" class="font-outfit font-extrabold text-3xl leading-none"></h4>
+                                <p class="text-xs text-gray-400 mt-1">Prediksi Polaritas Sentimen</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Confidence Circle Gauge -->
+                    <div class="flex items-center gap-6 relative z-10 bg-white/[0.02] border border-white/5 p-4 rounded-2xl">
+                        <div class="relative flex items-center justify-center">
+                            <svg class="w-24 h-24 transform -rotate-90">
+                                <circle cx="48" cy="48" r="40" stroke="rgba(255, 255, 255, 0.05)" stroke-width="8" fill="transparent" />
+                                <circle id="confidence-circle" cx="48" cy="48" r="40" stroke-width="8" fill="transparent"
+                                        stroke-dasharray="251.3" stroke-dashoffset="251.3" class="transition-all duration-1000 ease-out" />
+                            </svg>
+                            <span id="confidence-percentage" class="absolute font-outfit font-bold text-md text-white">0%</span>
+                        </div>
+                        <div class="flex-grow">
+                            <h5 class="font-semibold text-sm text-white">Skor Keyakinan</h5>
+                            <p class="text-xs text-gray-400 leading-normal mt-1">
+                                Probabilitas kepastian model terhadap klasifikasi sentimen ini.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Group Members Details -->
+        <section class="mt-16 border-t border-white/5 pt-10">
+            <h3 class="font-outfit font-bold text-center text-xl text-white mb-8">Anggota Kelompok 8</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Member 1 -->
+                <div class="glass-panel p-5 rounded-2xl text-center hover:border-white/20 transition-all">
+                    <div class="w-12 h-12 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-outfit font-bold text-lg flex items-center justify-center mx-auto mb-3">
+                        MH
+                    </div>
+                    <h4 class="font-semibold text-white">Mohammad Hafidz Al Maaher</h4>
+                    <p class="text-xs text-indigo-400 font-mono mt-1">NIM. 434231117</p>
+                </div>
+                <!-- Member 2 -->
+                <div class="glass-panel p-5 rounded-2xl text-center hover:border-white/20 transition-all">
+                    <div class="w-12 h-12 rounded-full bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-500/20 font-outfit font-bold text-lg flex items-center justify-center mx-auto mb-3">
+                        AR
+                    </div>
+                    <h4 class="font-semibold text-white">Affan Rido Harris B.</h4>
+                    <p class="text-xs text-fuchsia-400 font-mono mt-1">NIM. 434231064</p>
+                </div>
+                <!-- Member 3 -->
+                <div class="glass-panel p-5 rounded-2xl text-center hover:border-white/20 transition-all">
+                    <div class="w-12 h-12 rounded-full bg-pink-500/10 text-pink-400 border border-pink-500/20 font-outfit font-bold text-lg flex items-center justify-center mx-auto mb-3">
+                        MB
+                    </div>
+                    <h4 class="font-semibold text-white">Muhammad Haikal Bima</h4>
+                    <p class="text-xs text-pink-400 font-mono mt-1">NIM. 434231111</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full py-6 border-t border-white/5 text-center text-xs text-gray-500 glass-panel mt-12">
+        <p>© 2026 Universitas Airlangga - Fakultas Vokasi - D4 Teknik Informatika</p>
+    </footer>
+
+    <!-- Frontend logic with Fetch API and Visual Effects -->
+    <script>
+        const reviewInput = document.getElementById('review-input');
+        const charCounter = document.getElementById('char-counter');
+        const btnSubmit = document.getElementById('btn-submit');
+        const btnClear = document.getElementById('btn-clear');
+        const spinner = document.getElementById('spinner');
+        
+        const resultPlaceholder = document.getElementById('result-placeholder');
+        const resultCard = document.getElementById('result-card');
+        const sentimentText = document.getElementById('sentiment-text');
+        const sentimentIcon = document.getElementById('sentiment-icon');
+        const sentimentGlowBg = document.getElementById('sentiment-glow-bg');
+        const confidenceCircle = document.getElementById('confidence-circle');
+        const confidencePercentage = document.getElementById('confidence-percentage');
+        const resultBadge = document.getElementById('result-badge');
+
+        const pipelineSteps = [
+            document.getElementById('step-1'),
+            document.getElementById('step-2'),
+            document.getElementById('step-3'),
+            document.getElementById('step-4')
+        ];
+
+        // Enable button when review length is sufficient
+        reviewInput.addEventListener('input', () => {
+            const length = reviewInput.value.trim().length;
+            charCounter.textContent = `${length} karakter / minimal 10 karakter`;
+            
+            if (length >= 10) {
+                btnSubmit.disabled = false;
+                charCounter.classList.remove('text-gray-500');
+                charCounter.classList.add('text-indigo-400');
+            } else {
+                btnSubmit.disabled = true;
+                charCounter.classList.add('text-gray-500');
+                charCounter.classList.remove('text-indigo-400');
+            }
+        });
+
+        // Clear button handler
+        btnClear.addEventListener('click', () => {
+            reviewInput.value = '';
+            btnSubmit.disabled = true;
+            charCounter.textContent = '0 karakter / minimal 10 karakter';
+            charCounter.classList.add('text-gray-500');
+            charCounter.classList.remove('text-indigo-400');
+            
+            // Reset visual layout
+            resultCard.classList.add('hidden');
+            resultPlaceholder.classList.remove('hidden');
+            resetPipelineSteps();
+        });
+
+        function resetPipelineSteps() {
+            pipelineSteps.forEach(step => {
+                step.classList.remove('pipeline-active');
+            });
+        }
+
+        function setConfidenceGauge(percent, sentiment) {
+            const radius = 40;
+            const circumference = 2 * Math.PI * radius; // ~251.3
+            const offset = circumference - (percent / 100) * circumference;
+            
+            confidenceCircle.style.strokeDasharray = `${circumference}`;
+            confidenceCircle.style.strokeDashoffset = `${offset}`;
+            
+            if (sentiment === 'POSITIF') {
+                confidenceCircle.setAttribute('stroke', 'url(#gradient-positive)');
+            } else {
+                confidenceCircle.setAttribute('stroke', 'url(#gradient-negative)');
+            }
+            
+            // Animate number count
+            let current = 0;
+            const duration = 1000; // 1s
+            const intervalTime = 15;
+            const step = (percent / (duration / intervalTime));
+            
+            const counter = setInterval(() => {
+                current += step;
+                if (current >= percent) {
+                    current = percent;
+                    clearInterval(counter);
+                }
+                confidencePercentage.textContent = `${current.toFixed(1)}%`;
+            }, intervalTime);
+        }
+
+        // Submit form
+        btnSubmit.addEventListener('click', async () => {
+            const review = reviewInput.value.trim();
+            if (!review || review.length < 10) return;
+
+            // Start loading state
+            btnSubmit.disabled = true;
+            spinner.classList.remove('hidden');
+            resetPipelineSteps();
+
+            // Simulate pipeline animations for visual luxury
+            try {
+                // Step 1: Preprocessing active
+                pipelineSteps[0].classList.add('pipeline-active');
+                await new Promise(r => setTimeout(r, 400));
+                
+                // Step 2: Vectorizer active
+                pipelineSteps[0].classList.remove('pipeline-active');
+                pipelineSteps[1].classList.add('pipeline-active');
+                await new Promise(r => setTimeout(r, 450));
+                
+                // Step 3: ML model predicting active
+                pipelineSteps[1].classList.remove('pipeline-active');
+                pipelineSteps[2].classList.add('pipeline-active');
+                
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ review })
+                });
+
+                const data = await response.json();
+                
+                // Step 4: Display output
+                pipelineSteps[2].classList.remove('pipeline-active');
+                pipelineSteps[3].classList.add('pipeline-active');
+                await new Promise(r => setTimeout(r, 200));
+
+                if (data.status === 'success') {
+                    // Hide placeholder and show card
+                    resultPlaceholder.classList.add('hidden');
+                    resultCard.classList.remove('hidden');
+                    
+                    // Display sentiment specific styles
+                    sentimentText.textContent = data.sentiment;
+                    
+                    if (data.sentiment === 'POSITIF') {
+                        resultCard.className = "glass-panel rounded-3xl p-8 transition-all duration-500 flex flex-col justify-between min-h-[350px] relative overflow-hidden glow-green";
+                        
+                        sentimentIcon.textContent = "😊";
+                        sentimentIcon.className = "w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+                        
+                        resultBadge.textContent = "Positive Class";
+                        resultBadge.className = "px-3 py-1 rounded-full text-xs font-semibold border bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+                        
+                        sentimentGlowBg.className = "absolute -right-20 -top-20 w-48 h-48 rounded-full blur-3xl opacity-20 transition-all duration-500 bg-emerald-500";
+                    } else {
+                        resultCard.className = "glass-panel rounded-3xl p-8 transition-all duration-500 flex flex-col justify-between min-h-[350px] relative overflow-hidden glow-red";
+                        
+                        sentimentIcon.textContent = "😢";
+                        sentimentIcon.className = "w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-lg bg-rose-500/20 text-rose-400 border border-rose-500/30";
+                        
+                        resultBadge.textContent = "Negative Class";
+                        resultBadge.className = "px-3 py-1 rounded-full text-xs font-semibold border bg-rose-500/10 text-rose-400 border-rose-500/20";
+                        
+                        sentimentGlowBg.className = "absolute -right-20 -top-20 w-48 h-48 rounded-full blur-3xl opacity-20 transition-all duration-500 bg-rose-500";
+                    }
+
+                    // Animate gauge and number
+                    setConfidenceGauge(data.confidence, data.sentiment);
+                } else {
+                    alert('Gagal menganalisis ulasan: ' + data.message);
+                    resetPipelineSteps();
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Terjadi kesalahan saat menghubungi server.');
+                resetPipelineSteps();
+            } finally {
+                btnSubmit.disabled = false;
+                spinner.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
