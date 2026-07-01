@@ -20,6 +20,7 @@ Aplikasi web interaktif untuk mendeteksi, menganalisis, dan mengklasifikasikan p
 
 ## 📸 Tampilan
 <img width="1908" height="1735" alt="image" src="https://github.com/user-attachments/assets/39d6d958-8ed4-43d2-9196-544cd5b918de" />
+<img width="941" height="446" alt="image" src="https://github.com/user-attachments/assets/24efddd3-81c5-4ba3-b654-817a88828c5f" />
 
 ---
 
