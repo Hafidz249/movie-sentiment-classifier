@@ -24,6 +24,8 @@
             }
         }
     </script>
+    <!-- AOS - Animate On Scroll Library -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" />
     <!-- Custom Styles -->
     <style>
         body {
@@ -108,6 +110,112 @@
             line-height: 1.5;
             transition: all 0.3s ease;
         }
+
+        /* ═══════════════════════════════════════════════════════════════════════
+           AOS SOFT & CASUAL ANIMATIONS
+           ═══════════════════════════════════════════════════════════════════════ */
+
+        /* Override default AOS duration for softer feel */
+        [data-aos] {
+            opacity: 0;
+            transition-duration: 800ms !important;
+        }
+
+        [data-aos].aos-animate {
+            opacity: 1;
+        }
+
+        /* Fade + Slide Up - Soft Entrance */
+        [data-aos="fade-up-soft"] {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        [data-aos="fade-up-soft"].aos-animate {
+            opacity: 1;
+            transform: translateY(0);
+            transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Fade + Slide Left - Gentle from left */
+        [data-aos="fade-left-soft"] {
+            opacity: 0;
+            transform: translateX(-25px);
+        }
+        [data-aos="fade-left-soft"].aos-animate {
+            opacity: 1;
+            transform: translateX(0);
+            transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Fade + Slide Right - Gentle from right */
+        [data-aos="fade-right-soft"] {
+            opacity: 0;
+            transform: translateX(25px);
+        }
+        [data-aos="fade-right-soft"].aos-animate {
+            opacity: 1;
+            transform: translateX(0);
+            transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Scale + Fade - Gentle zoom in */
+        [data-aos="zoom-in-soft"] {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        [data-aos="zoom-in-soft"].aos-animate {
+            opacity: 1;
+            transform: scale(1);
+            transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Flip X - Subtle flip entrance */
+        [data-aos="flip-left-soft"] {
+            opacity: 0;
+            transform: rotateY(45deg) translateX(-20px);
+        }
+        [data-aos="flip-left-soft"].aos-animate {
+            opacity: 1;
+            transform: rotateY(0) translateX(0);
+            transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Float animation - Continuous gentle floating */
+        @keyframes float-soft {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+        [data-aos="float"] {
+            animation: float-soft 3s ease-in-out infinite;
+        }
+
+        /* Light pulse glow */
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 0 15px rgba(129, 140, 248, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+            }
+            50% {
+                box-shadow: 0 0 25px rgba(129, 140, 248, 0.5), inset 0 1px 0 rgba(255,255,255,0.15);
+            }
+        }
+        [data-aos="pulse-glow"] {
+            animation: pulse-glow 2.5s ease-in-out infinite;
+        }
+
+        /* Slide in counter - For stat/badge elements */
+        [data-aos="slide-in-up-subtle"] {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+        [data-aos="slide-in-up-subtle"].aos-animate {
+            opacity: 1;
+            transform: translateY(0);
+            transition-timing-function: ease-out;
+        }
     </style>
 </head>
 <body class="font-sans text-gray-200 min-h-screen flex flex-col justify-between">
@@ -130,8 +238,8 @@
     </svg>
 
     <!-- Header / Navbar -->
-    <header class="w-full border-b border-white/5 py-4 px-6 lg:px-12 flex justify-between items-center glass-panel sticky top-0 z-50">
-        <div class="flex items-center gap-3">
+    <header class="w-full border-b border-white/5 py-4 px-6 lg:px-12 flex justify-between items-center glass-panel sticky top-0 z-50" data-aos="fade-down" data-aos-duration="600">
+        <div class="flex items-center gap-3" data-aos="fade-up-soft" data-aos-delay="100">
             <div class="w-11 h-11 rounded-2xl overflow-hidden shadow-lg shadow-indigo-500/30 ring-2 ring-indigo-500/20 flex-shrink-0">
                 <img src="{{ url_for('static', filename='logo.png') }}" alt="App Logo" class="w-full h-full object-cover">
             </div>
@@ -141,7 +249,7 @@
             </div>
         </div>
         
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3" data-aos="fade-up-soft" data-aos-delay="200">
             {% if demo_mode %}
             <span id="status-badge" class="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
                 <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
@@ -159,7 +267,7 @@
     <!-- Main Container -->
     <main class="flex-grow container mx-auto px-4 py-8 lg:py-12 max-w-5xl">
         <!-- Title Section -->
-        <div class="text-center mb-10">
+        <div class="text-center mb-10" data-aos="fade-up-soft" data-aos-delay="200">
             <h2 class="font-outfit text-4xl lg:text-5xl font-extrabold tracking-tight mb-3">
                 <span class="bg-gradient-to-r from-indigo-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">
                     Movie Review Sentiment Classifier
@@ -173,7 +281,7 @@
 
         {% if demo_mode %}
         <!-- Demo Warning Banner -->
-        <div id="demo-banner" class="mb-8 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-sm flex flex-col md:flex-row items-start md:items-center gap-3 shadow-lg backdrop-blur-md">
+        <div id="demo-banner" class="mb-8 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-sm flex flex-col md:flex-row items-start md:items-center gap-3 shadow-lg backdrop-blur-md" data-aos="fade-up-soft" data-aos-delay="100">
             <div class="p-2 rounded-lg bg-amber-500/20 text-amber-400">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -191,7 +299,7 @@
             <!-- Left Side: Textarea & Pipeline Visualizer -->
             <div class="lg:col-span-7 space-y-6">
                 <!-- Text Input Card -->
-                <div class="glass-panel rounded-3xl p-6 shadow-xl relative overflow-hidden">
+                <div class="glass-panel rounded-3xl p-6 shadow-xl relative overflow-hidden" data-aos="fade-left-soft" data-aos-delay="300">
                     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-fuchsia-500"></div>
 
                     <!-- Language Toggle -->
@@ -245,7 +353,7 @@
                 </div>
 
                 <!-- Pipeline Status Card -->
-                <div class="glass-panel rounded-3xl p-6 shadow-xl">
+                <div class="glass-panel rounded-3xl p-6 shadow-xl" data-aos="fade-left-soft" data-aos-delay="400">
                     <h3 class="font-outfit font-semibold text-md text-white mb-4 flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-indigo-400">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
@@ -254,19 +362,19 @@
                     </h3>
                     
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-xs">
-                        <div id="step-1" class="pipeline-step border border-white/5 rounded-2xl p-3 bg-white/[0.02] text-gray-500">
+                        <div id="step-1" class="pipeline-step border border-white/5 rounded-2xl p-3 bg-white/[0.02] text-gray-500" data-aos="zoom-in-soft" data-aos-delay="450">
                             <div class="font-bold text-lg mb-1">Fasa 2</div>
                             <div>Preprocessing</div>
                         </div>
-                        <div id="step-2" class="pipeline-step border border-white/5 rounded-2xl p-3 bg-white/[0.02] text-gray-500">
+                        <div id="step-2" class="pipeline-step border border-white/5 rounded-2xl p-3 bg-white/[0.02] text-gray-500" data-aos="zoom-in-soft" data-aos-delay="500">
                             <div class="font-bold text-lg mb-1">Fasa 3</div>
                             <div>Feature Vector</div>
                         </div>
-                        <div id="step-3" class="pipeline-step border border-white/5 rounded-2xl p-3 bg-white/[0.02] text-gray-500">
+                        <div id="step-3" class="pipeline-step border border-white/5 rounded-2xl p-3 bg-white/[0.02] text-gray-500" data-aos="zoom-in-soft" data-aos-delay="550">
                             <div class="font-bold text-lg mb-1">Fasa 4</div>
                             <div>ML Predict</div>
                         </div>
-                        <div id="step-4" class="pipeline-step border border-white/5 rounded-2xl p-3 bg-white/[0.02] text-gray-500">
+                        <div id="step-4" class="pipeline-step border border-white/5 rounded-2xl p-3 bg-white/[0.02] text-gray-500" data-aos="zoom-in-soft" data-aos-delay="600">
                             <div class="font-bold text-lg mb-1">Fasa 5</div>
                             <div>Output Result</div>
                         </div>
@@ -277,7 +385,7 @@
             <!-- Right Side: Beautiful Results Display -->
             <div class="lg:col-span-5">
                 <!-- Empty Result State -->
-                <div id="result-placeholder" class="glass-panel rounded-3xl p-8 text-center border-dashed border-white/10 flex flex-col items-center justify-center min-h-[350px]">
+                <div id="result-placeholder" class="glass-panel rounded-3xl p-8 text-center border-dashed border-white/10 flex flex-col items-center justify-center min-h-[350px]" data-aos="fade-right-soft" data-aos-delay="350">
                     <div class="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4 text-gray-400 border border-white/10">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
@@ -290,7 +398,7 @@
                 </div>
 
                 <!-- Active Result Card (Hidden Initially) -->
-                <div id="result-card" class="hidden glass-panel rounded-3xl p-8 transition-all duration-500 flex flex-col justify-between min-h-[350px] relative overflow-hidden">
+                <div id="result-card" class="hidden glass-panel rounded-3xl p-8 transition-all duration-500 flex flex-col justify-between min-h-[350px] relative overflow-hidden" data-aos="zoom-in-soft" data-aos-duration="600">
                     <!-- Accent background indicator light -->
                     <div id="sentiment-glow-bg" class="absolute -right-20 -top-20 w-48 h-48 rounded-full blur-3xl opacity-20 transition-all duration-500"></div>
                     
@@ -332,11 +440,11 @@
         </div>
 
         <!-- Group Members Details -->
-        <section class="mt-16 border-t border-white/5 pt-10">
+        <section class="mt-16 border-t border-white/5 pt-10" data-aos="fade-up-soft" data-aos-delay="500">
             <h3 class="font-outfit font-bold text-center text-xl text-white mb-8">Anggota Kelompok 8</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Member 1 -->
-                <div class="glass-panel p-5 rounded-2xl text-center hover:border-white/20 transition-all">
+                <div class="glass-panel p-5 rounded-2xl text-center hover:border-white/20 transition-all" data-aos="flip-left-soft" data-aos-delay="550">
                     <div class="w-12 h-12 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-outfit font-bold text-lg flex items-center justify-center mx-auto mb-3">
                         MH
                     </div>
@@ -344,7 +452,7 @@
                     <p class="text-xs text-indigo-400 font-mono mt-1">NIM. 434231117</p>
                 </div>
                 <!-- Member 2 -->
-                <div class="glass-panel p-5 rounded-2xl text-center hover:border-white/20 transition-all">
+                <div class="glass-panel p-5 rounded-2xl text-center hover:border-white/20 transition-all" data-aos="flip-left-soft" data-aos-delay="600">
                     <div class="w-12 h-12 rounded-full bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-500/20 font-outfit font-bold text-lg flex items-center justify-center mx-auto mb-3">
                         AR
                     </div>
@@ -352,7 +460,7 @@
                     <p class="text-xs text-fuchsia-400 font-mono mt-1">NIM. 434231064</p>
                 </div>
                 <!-- Member 3 -->
-                <div class="glass-panel p-5 rounded-2xl text-center hover:border-white/20 transition-all">
+                <div class="glass-panel p-5 rounded-2xl text-center hover:border-white/20 transition-all" data-aos="flip-left-soft" data-aos-delay="650">
                     <div class="w-12 h-12 rounded-full bg-pink-500/10 text-pink-400 border border-pink-500/20 font-outfit font-bold text-lg flex items-center justify-center mx-auto mb-3">
                         MB
                     </div>
@@ -369,7 +477,30 @@
     </footer>
 
     <!-- Frontend logic with Fetch API and Visual Effects -->
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
     <script>
+        // Initialize AOS with custom settings for soft animations
+        AOS.init({
+            duration: 800,
+            easing: 'ease-out-cubic',
+            once: false,
+            mirror: false,
+            offset: 120,
+            delay: 0,
+            disableMutationObserver: false,
+            throttleDelay: 99,
+            startEvent: 'DOMContentLoaded',
+            animatedClassName: 'aos-animate',
+            useClassNames: false,
+        });
+
+        // Refresh AOS on dynamic content (like result card appearance)
+        const refreshAOS = () => {
+            setTimeout(() => {
+                AOS.refresh();
+            }, 100);
+        };
+
         const reviewInput = document.getElementById('review-input');
         const charCounter = document.getElementById('char-counter');
         const btnSubmit = document.getElementById('btn-submit');
@@ -605,6 +736,7 @@
                     // Hide placeholder and show card
                     resultPlaceholder.classList.add('hidden');
                     resultCard.classList.remove('hidden');
+                    refreshAOS(); // Trigger AOS animation for result card
                     
                     // Display sentiment specific styles
                     sentimentText.textContent = data.sentiment;
