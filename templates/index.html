@@ -112,6 +112,9 @@
 </head>
 <body class="font-sans text-gray-200 min-h-screen flex flex-col justify-between">
 
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-20 right-6 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none"></div>
+
     <!-- Global Gradients SVG Defs for Progress Ring -->
     <svg class="hidden">
         <defs>
@@ -474,6 +477,60 @@
             });
         }
 
+        function showToast(message, type = 'error') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let borderClass = 'border-rose-500/20 text-rose-200';
+            let iconColor = 'text-rose-400';
+            let titleText = 'Kesalahan';
+            let iconSvg = `<svg class="w-5 h-5 ${iconColor} flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+            
+            if (type === 'success') {
+                borderClass = 'border-emerald-500/20 text-emerald-200';
+                iconColor = 'text-emerald-400';
+                titleText = 'Sukses';
+                iconSvg = `<svg class="w-5 h-5 ${iconColor} flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+            } else if (type === 'warning') {
+                borderClass = 'border-amber-500/20 text-amber-200';
+                iconColor = 'text-amber-400';
+                titleText = 'Peringatan';
+                iconSvg = `<svg class="w-5 h-5 ${iconColor} flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`;
+            }
+
+            toast.className = `p-4 rounded-2xl glass-panel border ${borderClass} text-sm flex items-start gap-3 shadow-2xl backdrop-blur-md transition-all duration-300 transform translate-x-12 opacity-0 pointer-events-auto cursor-pointer`;
+            
+            toast.innerHTML = `
+                <div class="p-1 rounded-lg bg-white/5 flex-shrink-0">
+                    ${iconSvg}
+                </div>
+                <div class="flex-grow">
+                    <span class="font-semibold block mb-0.5">${titleText}</span>
+                    <span class="text-xs text-gray-400 leading-normal">${message}</span>
+                </div>
+            `;
+
+            toast.addEventListener('click', () => {
+                toast.classList.add('opacity-0', 'translate-x-12');
+                setTimeout(() => toast.remove(), 300);
+            });
+
+            container.appendChild(toast);
+            
+            // Trigger animation
+            setTimeout(() => {
+                toast.classList.remove('opacity-0', 'translate-x-12');
+            }, 50);
+
+            // Auto dismiss
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.classList.add('opacity-0', 'translate-x-12');
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 6000);
+        }
+
         function setConfidenceGauge(percent, sentiment) {
             const radius = 40;
             const circumference = 2 * Math.PI * radius; // ~251.3
@@ -577,12 +634,12 @@
                     // Animate gauge and number
                     setConfidenceGauge(data.confidence, data.sentiment);
                 } else {
-                    alert('Gagal menganalisis ulasan: ' + data.message);
+                    showToast(data.message, data.error_type === 'language_mismatch' ? 'warning' : 'error');
                     resetPipelineSteps();
                 }
             } catch (err) {
                 console.error(err);
-                alert('Terjadi kesalahan saat menghubungi server.');
+                showToast('Terjadi kesalahan saat menghubungi server.', 'error');
                 resetPipelineSteps();
             } finally {
                 btnSubmit.disabled = false;

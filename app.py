@@ -168,6 +168,53 @@ def clean_text_indonesian(text):
     cleaned_words = [word for word in words if word not in INDONESIAN_STOPWORDS and len(word) > 1]
     return ' '.join(cleaned_words)
 
+def is_matching_language(text, expected_lang):
+    """
+    Check if the input text matches the expected language filter.
+    Returns True if matches, False otherwise.
+    """
+    # Normalize text by removing non-alphabetic characters
+    cleaned = re.sub(r'[^a-zA-Z\s]', ' ', text.lower())
+    words = cleaned.split()
+    if not words:
+        return True
+
+    # Count Indonesian indicators
+    id_indicators = INDONESIAN_STOPWORDS.union(set(ID_TO_EN_DICT.keys()))
+    id_count = sum(1 for w in words if w in id_indicators)
+
+    # Count English indicators
+    en_indicators = stop_words.union({
+        'good', 'great', 'love', 'like', 'awesome', 'excellent', 'beautiful', 
+        'wonderful', 'brilliant', 'fantastic', 'best', 'nice', 'enjoy', 'cool', 
+        'masterpiece', 'perfect', 'amazing', 'fun', 'happy', 'glad', 'highly', 
+        'recommend', 'superb', 'entertaining', 'classic', 'gem', 'outstanding',
+        'bad', 'terrible', 'worst', 'hate', 'dislike', 'boring', 'waste', 'poor', 
+        'awful', 'stupid', 'dumb', 'horrible', 'worse', 'annoying', 'crap', 
+        'rubbish', 'fail', 'disappointed', 'dreadful', 'laughable', 'mess', 
+        'garbage', 'suck', 'sucks', 'pathetic', 'pointless', 'useless', 'slow',
+        'movie', 'film', 'acting', 'actor', 'actress', 'director', 'scene', 'plot',
+        'was', 'were', 'had', 'have', 'has', 'are', 'not', 'but', 'or', 'so',
+        'very', 'really', 'just', 'more', 'about', 'would', 'one', 'all', 'out',
+        'gorgeous', 'top', 'notch', 'cinema', 'story', 'soundtrack', 'effects',
+        'visuals', 'character', 'characters', 'performance', 'screen', 'audience',
+        'this', 'that', 'it', 'they', 'he', 'she', 'you', 'me', 'my', 'their'
+    })
+    en_count = sum(1 for w in words if w in en_indicators)
+
+    print(f"[LangCheck] input='{text[:30]}...' expected={expected_lang} | id_count={id_count}, en_count={en_count}")
+
+    # If expected_lang is 'id', but it has way more English words and almost zero Indonesian words
+    if expected_lang == 'id':
+        if en_count > id_count and id_count <= len(words) * 0.20:
+            return False
+    # If expected_lang is 'en', but it has way more Indonesian words and almost zero English words
+    elif expected_lang == 'en':
+        if id_count > en_count and en_count <= len(words) * 0.20:
+            return False
+
+    return True
+
 def clean_text(text):
     # 1. HTML Stripping
     text = re.sub(r'<[^>]+>', ' ', text)
@@ -282,6 +329,16 @@ def predict():
 
     # Detect selected language ('en' for English, 'id' for Indonesian)
     language = data.get('language', 'en')
+
+    # Validate if input matches the selected language filter
+    if not is_matching_language(review_text, language):
+        expected_lang_name = "Bahasa Indonesia" if language == 'id' else "Bahasa Inggris"
+        other_lang_name = "Bahasa Inggris" if language == 'id' else "Bahasa Indonesia"
+        return jsonify({
+            'status': 'error',
+            'error_type': 'language_mismatch',
+            'message': f'Ulasan tidak sesuai dengan filter bahasa yang dipilih ({expected_lang_name}). Silakan ubah filter ke {other_lang_name} atau sesuaikan ulasan Anda.'
+        }), 400
 
     # If Indonesian, translate to English before ML pipeline
     text_for_ml = review_text
