@@ -179,11 +179,9 @@ def is_matching_language(text, expected_lang):
     if not words:
         return True
 
-    # Count Indonesian indicators
+    # Define base indicators
     id_indicators = INDONESIAN_STOPWORDS.union(set(ID_TO_EN_DICT.keys()))
-    id_count = sum(1 for w in words if w in id_indicators)
-
-    # Count English indicators
+    
     en_indicators = stop_words.union({
         'good', 'great', 'love', 'like', 'awesome', 'excellent', 'beautiful', 
         'wonderful', 'brilliant', 'fantastic', 'best', 'nice', 'enjoy', 'cool', 
@@ -200,17 +198,34 @@ def is_matching_language(text, expected_lang):
         'visuals', 'character', 'characters', 'performance', 'screen', 'audience',
         'this', 'that', 'it', 'they', 'he', 'she', 'you', 'me', 'my', 'their'
     })
-    en_count = sum(1 for w in words if w in en_indicators)
 
+    # Remove overlapping words to avoid false positive matches in the wrong language
+    overlapping = id_indicators.intersection(en_indicators)
+    id_only = id_indicators - overlapping
+    en_only = en_indicators - overlapping
+
+    # Count language-specific indicators
+    id_count = sum(1 for w in words if w in id_only)
+    en_count = sum(1 for w in words if w in en_only)
+
+    total_indicators = id_count + en_count
+    
     print(f"[LangCheck] input='{text[:30]}...' expected={expected_lang} | id_count={id_count}, en_count={en_count}")
 
-    # If expected_lang is 'id', but it has way more English words and almost zero Indonesian words
+    if total_indicators == 0:
+        return True # Allow neutral/unidentifiable short text to pass to classifier
+
+    id_ratio = id_count / total_indicators
+    en_ratio = en_count / total_indicators
+
+    # If the user selects Indonesian but the text is overwhelmingly English (>= 75%)
     if expected_lang == 'id':
-        if en_count > id_count and id_count <= len(words) * 0.20:
+        if en_ratio >= 0.75:
             return False
-    # If expected_lang is 'en', but it has way more Indonesian words and almost zero English words
+            
+    # If the user selects English but the text is overwhelmingly Indonesian (>= 75%)
     elif expected_lang == 'en':
-        if id_count > en_count and en_count <= len(words) * 0.20:
+        if id_ratio >= 0.75:
             return False
 
     return True
