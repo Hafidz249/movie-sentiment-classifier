@@ -359,7 +359,7 @@ def predict():
     text_for_ml = review_text
     if language == 'id':
         text_for_ml = translate_indonesian_to_english(review_text)
-        print(f"[ID→EN] Original: '{review_text}' | Translated: '{text_for_ml}'")
+        print(f"[ID->EN] Original: '{review_text}' | Translated: '{text_for_ml}'")
         
     if demo_mode:
         sentiment, confidence = mock_predict(review_text, language=language)
